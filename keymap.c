@@ -13,7 +13,7 @@
 
 // Keycodes
 #define LCHG LGUI(KC_SPC)
-#define MCRN UC(0x00fa)
+#define MCRN UC(0x00af)
 
 /* Layers */
 enum {
