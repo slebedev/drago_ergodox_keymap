@@ -1,0 +1,67 @@
+#!/bin/bash
+set -e
+
+
+_cmd_appsel () {
+    open -a "$1"
+}
+
+cmd_appsel_slack () {
+    _cmd_appsel "Slack.app"
+}
+
+cmd_appsel_emacs () {
+    _cmd_appsel "Emacs.app"
+}
+
+cmd_appsel_term () {
+    _cmd_appsel "iTerm2.app"
+}
+
+cmd_appsel_web () {
+    _cmd_appsel "Safari.app"
+}
+
+cmd_appsel_telegram () {
+    _cmd_appsel "Telegram Desktop.app"
+}
+
+cmd_appsel_mail () {
+    _cmd_appsel "Mail.app"
+}
+
+cmd_appsel_chrome () {
+    _cmd_appsel "Google Chrome.app"
+}
+
+cmd_appsel_postbox () {
+    _cmd_appsel "Postbox.app"
+}
+
+cmd_appsel_alfred () {
+    _cmd_appsel "Alfred 3.app"
+}
+
+cmd_help () {
+    cat <<EOF
+Use the source, Luke!
+EOF
+}
+
+while read l; do
+    case "$l" in
+        "CMD:"*)
+            ;;
+        *)
+            continue
+            ;;
+    esac
+
+    cmd="$(echo $l | cut -d: -f2-)"
+
+    echo "Got command: ${cmd}"
+
+    if type cmd_${cmd} >/dev/null 2>&1; then
+        cmd_${cmd}
+    fi
+done

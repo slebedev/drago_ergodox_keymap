@@ -1,0 +1,14 @@
+#ifndef CONFIG_DRAGO_H
+#define CONFIG_DRAGO_H
+#include "../../config.h"
+
+#define ONESHOT_TAP_TOGGLE 2
+#define ONESHOT_TIMEOUT 3000
+
+#undef LOCKING_SUPPORT_ENABLE
+#undef LOCKING_RESYNC_ENABLE
+
+#undef LEADER_TIMEOUT
+#define LEADER_TIMEOUT 500
+
+#endif
