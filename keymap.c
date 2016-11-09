@@ -35,6 +35,7 @@ enum {
   CT_CLN = 0,
   CT_LBP,
   CT_RBP,
+  CT_TA,
 };
 
 /* Fn keys */
@@ -99,17 +100,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         // left hand
             KC_GRV,  KC_1,   KC_2,    KC_3,  KC_4, KC_5,   KC_DELETE,
             KC_TAB,  KC_Q,   KC_W,    KC_E,  KC_R, KC_T,   TD(CT_LBP),
-            LCHG,    KC_A,   KC_S,    KC_D,  KC_F, KC_G,
+            TD(CT_TA),    KC_A,   KC_S,    KC_D,  KC_F, KC_G,
             F(F_SFT), KC_Z,   KC_X,    KC_C,  KC_V, KC_B,   KC_LEAD, //ALL_T(KC_NO),
             F(SYMB_TG),  KC_GRV, KC_CAPS, KC_NO, TD(CT_CLN),
                                                F(F_CTL),F(F_GUI),
                                                         F(F_ALT),
-                                      KC_BSPC, KC_ESC,  F(MDIA_OS),
+                                      KC_BSPC, GUI_T(KC_ESC),  F(MDIA_OS),
         // right hand
              KC_INS,    KC_6,   KC_7,   KC_8,   KC_9,   KC_0,          KC_POWER,
              TD(CT_RBP),   KC_Y,   KC_U,   KC_I,   KC_O,   KC_P,          KC_BSLS,
                         KC_H,   KC_J,   KC_K,   KC_L,   KC_SCLN,       LT(ARRW, KC_QUOT),
-             LCTL(KC_A),KC_N,   KC_M,   KC_COMM,KC_DOT, CTL_T(KC_SLSH),F(F_SFT),
+             LCHG,KC_N,   KC_M,   KC_COMM,KC_DOT, CTL_T(KC_SLSH),F(F_SFT),
                                   KC_MINS,KC_EQL,KC_LBRC,KC_RBRC,      F(MDIA_TG),
              F(F_CTL),        F(F_GUI),
              F(F_ALT),
@@ -300,6 +301,18 @@ bool process_record_user (uint16_t keycode, keyrecord_t *record) {
       set_unicode_input_mode(UC_OSX);
       return false;
       break;
+    case KC_ESC:
+      if (record->event.pressed) {
+        bool queue = true;
+
+        if ((get_oneshot_mods()) && !has_oneshot_mods_timed_out()) {
+          clear_oneshot_mods();
+          queue = false;
+        }
+
+        return queue;
+      }
+      break;
   }
   return true;
 }
@@ -397,10 +410,64 @@ void matrix_init_user(void) {
 
 LEADER_EXTERNS();
 
+typedef struct {
+  bool layer_toggle;
+  bool sticky;
+} td_ta_state_t;
+
+static void drg_tap (uint16_t code, ...) {
+  uint16_t kc = code;
+  va_list ap;
+
+  va_start(ap, code);
+
+  do {
+    register_code16(kc);
+    unregister_code16(kc);
+    wait_ms(50);
+    kc = va_arg(ap, int);
+  } while (kc != 0);
+  va_end(ap);
+}
+
+static void drg_tap_dance_ta_finished (qk_tap_dance_state_t *state, void *user_data) {
+  td_ta_state_t *td_ta = (td_ta_state_t *) user_data;
+
+  if (td_ta->sticky) {
+    td_ta->sticky = false;
+    td_ta->layer_toggle = false;
+    layer_off (ARRW);
+    return;
+  }
+
+  if (state->count == 1 && !state->pressed) {
+    register_code (KC_TAB);
+    td_ta->sticky = false;
+    td_ta->layer_toggle = false;
+  } else {
+    td_ta->layer_toggle = true;
+    layer_on (ARRW);
+    td_ta->sticky = (state->count == 2);
+  }
+}
+
+static void drg_tap_dance_ta_reset (qk_tap_dance_state_t *state, void *user_data) {
+  td_ta_state_t *td_ta = (td_ta_state_t *) user_data;
+
+  if (!td_ta->layer_toggle)
+    unregister_code (KC_TAB);
+  if (!td_ta->sticky)
+    layer_off (ARRW);
+}
+
 qk_tap_dance_action_t tap_dance_actions[] = {
   [CT_CLN] = ACTION_TAP_DANCE_DOUBLE (KC_COLN, KC_SCLN),
   [CT_LBP] = ACTION_TAP_DANCE_DOUBLE (KC_LBRC, KC_LPRN),
   [CT_RBP] = ACTION_TAP_DANCE_DOUBLE (KC_RBRC, KC_RPRN),
+  [CT_TA]  = {
+    .fn = { NULL, drg_tap_dance_ta_finished, drg_tap_dance_ta_reset },
+    .user_data = (void *)&((td_ta_state_t) { false, false })
+  },
 };
 
 #define TAP_ONCE(code)  \
