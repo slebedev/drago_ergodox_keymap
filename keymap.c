@@ -501,6 +501,7 @@ void matrix_scan_user(void) {
     LEADER_DICTIONARY() {
         leading = false;
         leader_end ();
+        uint8_t unic_mode = get_unicode_input_mode();
 
         SEQ_ONE_KEY (KC_S) {
             unicode_input_start(); register_hex(0xaf); unicode_input_finish();
@@ -513,9 +514,11 @@ void matrix_scan_user(void) {
         }
 
         SEQ_ONE_KEY (KC_P) {
-            register_code(KC_LGUI);
-            TAP_ONCE(KC_V);
-            unregister_code(KC_LGUI);
+            if ((unic_mode == UC_LNX) || (unic_mode == UC_WIN)) {
+                drg_tap (LSFT(KC_INS), 0);
+            } else if (unic_mode == UC_OSX) {
+                drg_tap (LGUI(KC_V), 0);
+            }
         }
 
         SEQ_ONE_KEY (KC_F) {
@@ -523,9 +526,11 @@ void matrix_scan_user(void) {
         }
 
         SEQ_TWO_KEYS (KC_W, KC_D) {
-            register_code(KC_LGUI);
-            TAP_ONCE(KC_W);
-            unregister_code(KC_LGUI);
+            if ((unic_mode == UC_LNX) || (unic_mode == UC_WIN)) {
+                drg_tap (LALT(KC_F4), 0);
+            } else if (unic_mode == UC_OSX) {
+                drg_tap (LGUI(KC_W), 0);
+            }
         }
 
         SEQ_TWO_KEYS (KC_W, KC_F) {
