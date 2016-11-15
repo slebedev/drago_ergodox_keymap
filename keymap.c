@@ -596,6 +596,10 @@ void matrix_scan_user(void) {
             uprintf("CMD:appsel_term\n");
         }
 
+        SEQ_TWO_KEYS (KC_A, KC_A) {
+            uprintf("CMD:appsel_alfred\n");
+        }
+
     }
 
 };
